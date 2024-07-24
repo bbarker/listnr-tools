@@ -1,7 +1,7 @@
 use clap::Parser;
+use comrak::nodes::NodeCodeBlock;
 use comrak::{nodes::NodeValue, parse_document, Arena, ComrakOptions};
 use csv::Reader;
-use regex::Regex;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs;
@@ -60,24 +60,18 @@ fn read_substitutions(path: &PathBuf) -> Result<HashMap<String, String>, Box<dyn
 
 fn apply_substitutions(content: &str, substitutions: &HashMap<String, String>) -> String {
     let mut result = content.to_string();
-    for (from, to) in substitutions {
+    substitutions.iter().for_each(|(from, to)| {
         result = result.replace(from, to);
-    }
+    });
     result
 }
 
-fn process_code_blocks(content: &str) -> String {
-    let code_block_regex = Regex::new(r"```[\s\S]*?```").unwrap();
-    code_block_regex
-        .replace_all(content, |caps: &regex::Captures| {
-            let code_block = caps.get(0).unwrap().as_str();
-            if code_block.len() > 80 {
-                "listing omitted; please see the original source".to_string()
-            } else {
-                code_block.to_string()
-            }
-        })
-        .to_string()
+fn process_code_blocks(code_block: &NodeCodeBlock) -> String {
+    if code_block.literal.len() > 80 {
+        "listing omitted; please see the original source".to_string()
+    } else {
+        code_block.literal.to_string()
+    }
 }
 
 fn chunk_markdown(content: &str) -> Vec<String> {
@@ -91,7 +85,7 @@ fn chunk_markdown(content: &str) -> Vec<String> {
             } else if let NodeValue::Code(ref node_code) = node.data.borrow().value {
                 Some(node_code.literal.clone())
             } else if let NodeValue::CodeBlock(ref code_block) = node.data.borrow().value {
-                Some(process_code_blocks(&code_block.literal.clone()))
+                Some(process_code_blocks(code_block))
             } else {
                 None
             }
