@@ -18,6 +18,9 @@
           formatter = nixpkgs.legacyPackages.x86_64-linux.nixpkgs-fmt;
           devShells.default = mkShell {
             buildInputs = [
+              (rust-bin.stable.latest.default.override {
+                extensions = [ "rust-src" ];
+              })
               rust-bin.stable.latest.default
               pkg-config
 
