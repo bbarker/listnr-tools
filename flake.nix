@@ -33,6 +33,8 @@
               "-Wl,--pop-state"
             ];
 
+            LIBCLANG_PATH = pkgs.lib.makeLibraryPath [ pkgs.llvmPackages_latest.libclang.lib ];
+
             # LD_LIBRARY_PATH = lib.makeLibraryPath [
             #   libxkbcommon
             #   mesa.drivers
