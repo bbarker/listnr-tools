@@ -88,23 +88,19 @@ fn chunk_markdown(content: &str) -> Vec<String> {
             NodeValue::CodeBlock(ref code_block) => Some(process_code_blocks(code_block)),
             _ => None,
         })
-        .flat_map(|text| {
-            text.split_whitespace()
-                .fold(Vec::<String>::new(), |mut chunks, word| {
-                    if let Some(last_chunk) = chunks.last_mut() {
-                        if last_chunk.len() + word.len() + 1 <= SECTION_CHAR_LIMIT {
-                            last_chunk.push(' ');
-                            last_chunk.push_str(word);
-                        } else {
-                            chunks.push(word.to_string());
-                        }
-                    } else {
-                        chunks.push(word.to_string());
-                    }
-                    chunks
-                })
+        .fold(Vec::new(), |mut chunks, text| {
+            if let Some(last_chunk) = chunks.last_mut() {
+                if last_chunk.len() + text.len() + 1 <= SECTION_CHAR_LIMIT {
+                    last_chunk.push(' ');
+                    last_chunk.push_str(&text);
+                } else {
+                    chunks.push(text);
+                }
+            } else {
+                chunks.push(text);
+            }
+            chunks
         })
-        .collect()
 }
 
 #[cfg(test)]
